@@ -1,4 +1,4 @@
-# ImprovedSoundtrack
+# Improved Soundtrack
 
 This is an audio mod for **The Long Dark** by Hinterland Studios
 
