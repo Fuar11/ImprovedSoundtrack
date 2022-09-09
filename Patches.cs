@@ -8,6 +8,7 @@ using UnityEngine.Audio;
 using HarmonyLib;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
+using MelonLoader;
 
 namespace ImprovedSoundtrack
 {
@@ -31,9 +32,16 @@ namespace ImprovedSoundtrack
 
         public static float m_TimeToPlayOnSceneLoadFog;
         public static float m_TimeToPlayOnSceneLoadClear;
+        public static float m_TimeToPlayOnSceneLoadPV;
+
+        public static float m_PVLastPlayedTime;
+        public static float m_PVHoursInBetween = 24f;
+
+        public static uint[] playingIds = new uint[1500];
 
         public static AudioSource m_OutdoorStingerSource = new AudioSource();
-        public static bool m_isPlayingOutdoorStinger = false;
+        public static AudioSource m_PleasantValleyAmbient = new AudioSource();
+        //public static bool m_isPlayingOutdoorStinger = false;
 
         [HarmonyPatch(typeof(GameManager), "Awake")]
         internal class GameManager_Awake
@@ -42,7 +50,8 @@ namespace ImprovedSoundtrack
             {
                 MelonLoader.MelonLogger.Msg("Improved Soundtracks online!");
                 m_TimeToPlayOnSceneLoadFog = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + 0.005f;
-                m_TimeToPlayOnSceneLoadClear = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + Random.Range(0.005f, 4f); 
+                m_TimeToPlayOnSceneLoadClear = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + Random.Range(0.005f, 4f);
+                m_TimeToPlayOnSceneLoadPV = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + Random.Range(4f, 24f);
             }
 
         }
@@ -56,13 +65,15 @@ namespace ImprovedSoundtrack
                 if (Settings.settings.active == Active.Enabled) {
                     m_stormLastPlayTime = float.NegativeInfinity;
                     m_ClearLastPlayedTime = float.NegativeInfinity;
+                    m_PVLastPlayedTime = float.NegativeInfinity;
                     m_LocationDiscoveredLastPlayedTime = float.NegativeInfinity;
 
                     m_OutdoorStingerSource = __instance.gameObject.AddComponent<AudioSource>();
+                    m_PleasantValleyAmbient = __instance.gameObject.AddComponent<AudioSource>();
                 }
             }
         }
-        
+
         //Adds more music events
         [HarmonyPatch(typeof(MusicEventManager), "Update")]
         internal class MusicEventManager_Update
@@ -76,18 +87,21 @@ namespace ImprovedSoundtrack
                         CheckForBlizzard(__instance);
                         CheckForFog(__instance);
                         CheckForClearing(__instance);
+                        CheckForPV();
                         m_OutdoorStingerSource.UnPause();
+                        m_PleasantValleyAmbient.UnPause();
                     }
                     else
                     {
                         m_OutdoorStingerSource.Pause();
+                        m_PleasantValleyAmbient.Pause();
                     }
                 }
             }
 
             private static void CheckForBlizzard(MusicEventManager __instance)
             {
-                if (InterfaceManager.IsMainMenuEnabled())
+                if (InterfaceManager.IsMainMenuEnabled() || m_PleasantValleyAmbient.isPlaying)
                 {
                     return;
                 }
@@ -112,7 +126,7 @@ namespace ImprovedSoundtrack
 
             private static void CheckForFog(MusicEventManager __instance)
             {
-                if (InterfaceManager.IsMainMenuEnabled())
+                if (InterfaceManager.IsMainMenuEnabled() || m_PleasantValleyAmbient.isPlaying)
                 {
                     return;
                 }
@@ -141,7 +155,7 @@ namespace ImprovedSoundtrack
 
             public static void CheckForClearing(MusicEventManager __instance)
             {
-                if (InterfaceManager.IsMainMenuEnabled())
+                if (InterfaceManager.IsMainMenuEnabled() || m_PleasantValleyAmbient.isPlaying)
                 {
                     return;
                 }
@@ -184,6 +198,36 @@ namespace ImprovedSoundtrack
                                 m_ClearLastPlayedTime = hoursPlayedNotPaused;
                             }
                         }
+                }
+
+            }
+
+            public static void CheckForPV()
+            {
+
+                if (InterfaceManager.IsMainMenuEnabled() || GameManager.GetWeatherComponent().IsIndoorScene() || (RegionManager.GetCurrentRegion() != GameRegion.RuralRegion))
+                {
+                    return;
+                }
+
+                if (GameManager.GetWeatherComponent().GetWeatherStage() == WeatherStage.Blizzard)
+                {
+                    return;
+                }
+
+                AudioClip track = Implementation.TracksBundle.LoadAsset<AudioClip>("TPV");
+
+                float hoursPlayedNotPaused = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused();
+                if (!(hoursPlayedNotPaused - m_PVLastPlayedTime < m_PVHoursInBetween))
+                {
+
+                    if (GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() > m_TimeToPlayOnSceneLoadPV)
+                    {
+
+                        m_PleasantValleyAmbient.clip = track;
+                        m_PleasantValleyAmbient.Play();
+                        m_PVLastPlayedTime = hoursPlayedNotPaused;
+                    }
                 }
 
             }
@@ -293,7 +337,7 @@ namespace ImprovedSoundtrack
             private static void Postfix(ref MusicEventManager __instance, ref bool hasPlayedBefore)
             {
 
-                if (!Settings.settings.locationStingers || Settings.settings.active == Active.Disabled)
+                if (!Settings.settings.locationStingers || Settings.settings.active == Active.Disabled || m_PleasantValleyAmbient.isPlaying)
                 {
                     return;
                 }
@@ -302,6 +346,7 @@ namespace ImprovedSoundtrack
                 {
                     return;
                 }
+
 
                 if (GameManager.GetWeatherComponent().IsIndoorEnvironment())
                 {
@@ -319,6 +364,13 @@ namespace ImprovedSoundtrack
 
                 AudioClip stinger = Implementation.TracksBundle.LoadAsset<AudioClip>(stingers[chosenStinger]);
 
+                m_OutdoorStingerSource.volume = 0.5f;
+
+                if(GameManager.GetWindComponent().m_CurrentStrength == WindStrength.VeryWindy || GameManager.GetWindComponent().m_CurrentStrength == WindStrength.Blizzard)
+                {
+                    m_OutdoorStingerSource.volume = 1f;
+                }
+
                 float hoursPlayedNotPaused = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused();
                 if (!(hoursPlayedNotPaused - m_LocationDiscoveredLastPlayedTime < m_LocationDiscoveredHoursBetween))
                 {
@@ -334,8 +386,26 @@ namespace ImprovedSoundtrack
 
         }
 
-    }
+        //checks if track is playing and stops from playing
+        [HarmonyPatch(typeof(SceneMusicManager), "PlayExploreMusic")]
+        internal class SceneMusicManager_Override
+        {
+            public static bool Prefix()
+            {
+                if (m_PleasantValleyAmbient.isPlaying || m_OutdoorStingerSource.isPlaying)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
 
- 
+        }
+    
+
+
+    }
 
 }

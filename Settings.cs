@@ -27,8 +27,8 @@ namespace ImprovedSoundtrack
         [Section("Ambient Tracks")]
         [Name("Time In Between Clearing")]
         [Description("Number of in game hours from last play time that is needed for 'Clearing' to play. Based on unpaused in game time, not in game passed time.")]
-        [Slider(1f, 24f, 1)]
-        public float timeInBetweenClearing = 6f;
+        [Slider(6f, 24f, 1)]
+        public float timeInBetweenClearing = 12f;
 
         [Section("Location Discovered Stingers")]
 
@@ -40,7 +40,7 @@ namespace ImprovedSoundtrack
         [Name("Location Discovered Stinger")]
         [Description("The stinger to play when you discover a new location.")]
         [Choice("Finder", "Shelter", "Shelter2", "Random")]
-        public int chosenStinger = 1;
+        public int chosenStinger = 3;
 
         [Name("Time In Between Plays")]
         [Description("Number of in game hours from last play time that is needed for stinger to play. Based on unpaused in game time, not in game passed time.")]
