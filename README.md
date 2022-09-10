@@ -28,6 +28,10 @@ Improved Soundtrack improves the game's audiospace by adding more (or adding bac
 
 - [AudioCore](https://github.com/DigitalzombieTLD/AudioCore/releases/tag/1.0)
 
+* Download the latest release of the mod and place in your mods folder:
+
+- [Releases](https://github.com/Fuar11/ImprovedSoundtrack/releases)
+
 ## Special Thanks
 
 Thanks to [DigitalZombie]("https://github.com/DigitalzombieTLD) for AudioCore! Without it I wouldn't have been able to do a large portion of this mod.
