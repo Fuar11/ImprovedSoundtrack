@@ -9,6 +9,8 @@ Improved Soundtrack improves the game's audiospace by adding more (or adding bac
 * Trepidation now plays more frequently.
 * Clearing now plays more frequently.
 * Delay between tracks so they don't play too frequently.
+* Added Episode 3 exploration music to Pleasant Valley
+* Removed wolf stalking music
 * Customizable with the Mod Settings menu.
 
 ## Known Issues
