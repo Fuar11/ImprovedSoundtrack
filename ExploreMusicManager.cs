@@ -58,8 +58,6 @@ namespace ImprovedSoundtrack
                 m_ExploreMusicAurora.Add("Firmament");
                 m_ExploreMusicAurora.Add("Prepare");
 
-                __instance.PlayExploreMusic();
-
             }
         }
 
