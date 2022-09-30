@@ -71,6 +71,12 @@ namespace ImprovedSoundtrack
             }
             private static void Postfix(SceneMusicManager __instance)
             {
+
+                if (GameManager.GetWeatherComponent().IsIndoorScene() && GameManager.GetWeatherComponent().IsIndoorEnvironment())
+                {
+                    return;
+                }
+
                 __instance.ResetExploreMusicTimer();
 
                 if (__instance.m_SupressExploreMusic || __instance.m_MusicSuppressorInRange)
@@ -85,6 +91,7 @@ namespace ImprovedSoundtrack
                 {
                     AudioClip track = Implementation.TracksBundle.LoadAsset<AudioClip>(list[Random.Range(0, list.Count)]);
                     m_ExploreMusicSource.clip = track;
+                    m_ExploreMusicSource.volume = InterfaceManager.m_Panel_OptionsMenu.m_State.m_MusicVolume;
                     m_ExploreMusicSource.Play();
                 }
             }

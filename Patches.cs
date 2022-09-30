@@ -27,9 +27,6 @@ namespace ImprovedSoundtrack
 
         public static float m_ClearLastPlayedTime;
 
-        public static float m_LocationDiscoveredHoursBetween = 0.5f;
-        public static float m_LocationDiscoveredLastPlayedTime;
-
         public static float m_TimeToPlayOnSceneLoadFog;
         public static float m_TimeToPlayOnSceneLoadClear;
 
@@ -57,7 +54,6 @@ namespace ImprovedSoundtrack
                 {
                     m_stormLastPlayTime = float.NegativeInfinity;
                     m_ClearLastPlayedTime = float.NegativeInfinity;
-                    m_LocationDiscoveredLastPlayedTime = float.NegativeInfinity;
 
                     m_OutdoorStingerSource = __instance.gameObject.AddComponent<AudioSource>();
                 }
@@ -102,7 +98,7 @@ namespace ImprovedSoundtrack
                     }
                     catch(Exception e)
                     {
-                        MelonLoader.MelonLogger.Msg("MusicEventManager not initialized yet!");
+                        
                     }
                 }
             }
@@ -176,7 +172,6 @@ namespace ImprovedSoundtrack
 
                 if (!GameManager.GetWeatherComponent().IsIndoorScene())
                 {
-
                     if (ExploreMusicManager.m_ExploreMusicSource.isPlaying)
                     {
                         return;
@@ -280,16 +275,21 @@ namespace ImprovedSoundtrack
                 if (flag)
                 {
 
-
-                    float hoursPlayedNotPaused = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused();
-                    if (!(hoursPlayedNotPaused - __instance.m_HappySuccessLastPlayTime < m_trepidationMinHoursInBetween))
+                    try
                     {
+                        float hoursPlayedNotPaused = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused();
+                        if (!(hoursPlayedNotPaused - __instance.m_HappySuccessLastPlayTime < m_trepidationMinHoursInBetween))
+                        {
 
-                        GameAudioManager.PlayMusic(__instance.m_HappySuccessMusic, ((Component)__instance).gameObject);
-                        __instance.m_HappySuccessLastPlayTime = hoursPlayedNotPaused;
+                            GameAudioManager.PlayMusic(__instance.m_HappySuccessMusic, ((Component)__instance).gameObject);
+                            __instance.m_HappySuccessLastPlayTime = hoursPlayedNotPaused;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        return;
                     }
                 }
-
             }
 
 
@@ -329,7 +329,6 @@ namespace ImprovedSoundtrack
 
                 if (GameManager.GetWeatherComponent().IsIndoorScene())
                 {
-                    MelonLoader.MelonLogger.Msg("We are indoors");
                     return;
                 }
 
@@ -354,24 +353,15 @@ namespace ImprovedSoundtrack
 
                 AudioClip stinger = Implementation.TracksBundle.LoadAsset<AudioClip>(stingers[chosenStinger]);
 
-                m_OutdoorStingerSource.volume = 0.5f;
+                m_OutdoorStingerSource.volume = InterfaceManager.m_Panel_OptionsMenu.m_State.m_MusicVolume;
 
-                if (GameManager.GetWindComponent().m_CurrentStrength == WindStrength.VeryWindy || GameManager.GetWindComponent().m_CurrentStrength == WindStrength.Blizzard)
+                if (!hasPlayedBefore)
                 {
-                    m_OutdoorStingerSource.volume = 1f;
+                    m_OutdoorStingerSource.clip = stinger;
+                    m_OutdoorStingerSource.Play();
                 }
 
-                float hoursPlayedNotPaused = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused();
-                if (!(hoursPlayedNotPaused - m_LocationDiscoveredLastPlayedTime < m_LocationDiscoveredHoursBetween))
-                {
-                    if (!hasPlayedBefore)
-                    {
-                        m_OutdoorStingerSource.clip = stinger;
-                        m_OutdoorStingerSource.Play();
-                        m_LocationDiscoveredLastPlayedTime = hoursPlayedNotPaused;
-                    }
 
-                }
             }
 
         }
