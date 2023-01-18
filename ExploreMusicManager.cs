@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Il2Cpp;
 using UnityEngine.Audio;
 using HarmonyLib;
 using Random = UnityEngine.Random;
@@ -25,6 +26,8 @@ namespace ImprovedSoundtrack
         {
             private static void Postfix(SceneMusicManager __instance)
             {
+
+                /*
                 m_ExploreMusicSource = __instance.gameObject.AddComponent<AudioSource>();
 
                 m_ExploreMusicDay.Clear();
@@ -58,6 +61,7 @@ namespace ImprovedSoundtrack
                 m_ExploreMusicAurora.Add("Firmament");
                 m_ExploreMusicAurora.Add("Prepare");
 
+                */
             }
         }
 
@@ -65,13 +69,14 @@ namespace ImprovedSoundtrack
         [HarmonyPatch(typeof(SceneMusicManager), "PlayExploreMusic")]
         internal class SceneMusicManager_Override
         {
-            private static bool Prefix(SceneMusicManager __instance)
+            private static void Prefix(SceneMusicManager __instance)
             {
-                return false;
+              //return false;
             }
             private static void Postfix(SceneMusicManager __instance)
             {
 
+                /*
                 if (GameManager.GetWeatherComponent().IsIndoorScene() && GameManager.GetWeatherComponent().IsIndoorEnvironment())
                 {
                     return;
@@ -91,9 +96,11 @@ namespace ImprovedSoundtrack
                 {
                     AudioClip track = Implementation.TracksBundle.LoadAsset<AudioClip>(list[Random.Range(0, list.Count)]);
                     m_ExploreMusicSource.clip = track;
-                    m_ExploreMusicSource.volume = InterfaceManager.m_Panel_OptionsMenu.m_State.m_MusicVolume;
+                    m_ExploreMusicSource.volume = InterfaceManager.GetPanel<Panel_OptionsMenu>().m_State.m_MusicVolume;
                     m_ExploreMusicSource.Play();
                 }
+
+                */
             }
 
         }

@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using ModSettings;
-using static Panel_Confirmation;
-using static TintMaterials;
 
 namespace ImprovedSoundtrack
 {
@@ -25,11 +23,6 @@ namespace ImprovedSoundtrack
         public Active active = Active.Enabled;
 
         [Section("Ambient Tracks")]
-
-        [Name("Time In Between Clearing")]
-        [Description("Number of in game hours from last play time that is needed for 'Clearing' to play. Based on unpaused in game time, not in game passed time.")]
-        [Slider(6f, 24f, 1)]
-        public float timeInBetweenClearing = 12f;
 
         [Name("Pleasant Valley Explore Music")]
         [Description("The Pleasant Valley track from Episode 3 will play at random when exploring during the daytime in Pleasant Valley.")]
@@ -60,7 +53,6 @@ namespace ImprovedSoundtrack
 
         internal void RefreshSections()
         {
-            SetFieldVisible(nameof(timeInBetweenClearing), Settings.settings.active != Active.Disabled);
 
             SetFieldVisible(nameof(thePleasantValleyEnabled), Settings.settings.active != Active.Disabled);
 

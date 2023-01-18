@@ -1,36 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Audio;
 using HarmonyLib;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
-using MelonLoader;
+using Il2Cpp;
+using UnityEngine.Playables;
+using AudioMgr;
 
 namespace ImprovedSoundtrack
 {
     internal class Patches
     {
 
+        //new stuff
+
+
+
+
+        //old stuff
+
+        /*
         public static float m_stormLastPlayTime;
         public static float m_stormMinHoursInBetween = 2f;
 
         public static float m_FogMinHoursBetween = 6f;
         public static float m_fogLastPlayTime;
 
-        public static float m_trepidationMinHoursInBetween = 12f;
 
         public static float m_ClearMinHoursBetween = Settings.settings.timeInBetweenClearing;
-
         public static float m_ClearLastPlayedTime;
 
         public static float m_TimeToPlayOnSceneLoadFog;
-        public static float m_TimeToPlayOnSceneLoadClear;
+        public static float m_TimeToPlayOnSceneLoadClear; */
 
-        public static AudioSource m_OutdoorStingerSource = new AudioSource();
+        public static float m_trepidationMinHoursInBetween = 12f;
+
+        //Initialize Audio Sources
+        public static Shot m_TrepidationSource = Implementation.TrepSource;
+        public static Shot m_OutdoorStingerSource = Implementation.StingerSource;
 
         [HarmonyPatch(typeof(GameManager), "Awake")]
         internal class GameManager_Awake
@@ -38,8 +46,8 @@ namespace ImprovedSoundtrack
             private static void Postfix()
             {
                 MelonLoader.MelonLogger.Msg("Improved Soundtracks online!");
-                m_TimeToPlayOnSceneLoadFog = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + 0.005f;
-                m_TimeToPlayOnSceneLoadClear = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + Random.Range(0.005f, 4f);
+            //    m_TimeToPlayOnSceneLoadFog = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + 0.005f;
+            //    m_TimeToPlayOnSceneLoadClear = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused() + Random.Range(0.005f, 4f);
             }
 
         }
@@ -52,10 +60,10 @@ namespace ImprovedSoundtrack
             {
                 if (Settings.settings.active == Active.Enabled)
                 {
-                    m_stormLastPlayTime = float.NegativeInfinity;
-                    m_ClearLastPlayedTime = float.NegativeInfinity;
+                
+                    //m_stormLastPlayTime = float.NegativeInfinity;
+                    //m_ClearLastPlayedTime = float.NegativeInfinity;
 
-                    m_OutdoorStingerSource = __instance.gameObject.AddComponent<AudioSource>();
                 }
             }
         }
@@ -78,21 +86,26 @@ namespace ImprovedSoundtrack
                     {
                         if (!GameManager.m_IsPaused)
                         {
-                            CheckForBlizzard(__instance);
-                            CheckForFog(__instance);
-                            CheckForClearing(__instance);
-                            m_OutdoorStingerSource.UnPause();
+                            //   CheckForBlizzard(__instance);
+                            //   CheckForFog(__instance);
+                            //   CheckForClearing(__instance);
+
+                                 m_OutdoorStingerSource.Play();
+                                 m_TrepidationSource.Play();
+
                             if (!GameManager.GetWeatherComponent().IsIndoorScene())
                             {
-                                ExploreMusicManager.m_ExploreMusicSource.UnPause();
+                            //    ExploreMusicManager.m_ExploreMusicSource.UnPause();
                             }
                         }
                         else
                         {
-                            m_OutdoorStingerSource.Pause();
+                                 m_OutdoorStingerSource.Pause();
+                                 m_TrepidationSource.Pause();
+
                             if (!GameManager.GetWeatherComponent().IsIndoorScene())
                             {
-                                ExploreMusicManager.m_ExploreMusicSource.Pause();
+                            //  ExploreMusicManager.m_ExploreMusicSource.Pause();
                             }
                         }
                     }
@@ -103,7 +116,7 @@ namespace ImprovedSoundtrack
                 }
             }
 
-            private static void CheckForBlizzard(MusicEventManager __instance)
+        /* private static void CheckForBlizzard(MusicEventManager __instance)
             {
                 if (InterfaceManager.IsMainMenuEnabled())
                 {
@@ -126,9 +139,9 @@ namespace ImprovedSoundtrack
                     }
                 }
 
-            }
+            } */
 
-            private static void CheckForFog(MusicEventManager __instance)
+        /*    private static void CheckForFog(MusicEventManager __instance)
             {
 
                 if (InterfaceManager.IsMainMenuEnabled())
@@ -161,9 +174,9 @@ namespace ImprovedSoundtrack
                         }
                     }
                 }
-            }
+            } */
 
-            public static void CheckForClearing(MusicEventManager __instance)
+        /*    public static void CheckForClearing(MusicEventManager __instance)
             {
                 if (InterfaceManager.IsMainMenuEnabled())
                 {
@@ -215,7 +228,7 @@ namespace ImprovedSoundtrack
                     }
                 }
 
-            }
+            } */
 
         }
 
@@ -233,10 +246,13 @@ namespace ImprovedSoundtrack
 
                 if (!GameManager.GetWeatherComponent().IsIndoorScene())
                 {
-                    if (ExploreMusicManager.m_ExploreMusicSource.isPlaying)
+                 
+                    //check if vanilla music is playing
+
+                   /* if (ExploreMusicManager.m_ExploreMusicSource.isPlaying)
                     {
                         return;
-                    }
+                    } */
                 }
 
 
@@ -252,19 +268,19 @@ namespace ImprovedSoundtrack
                 }
 
                 bool flag = false;
-                if (InterfaceManager.m_Panel_Harvest.HarvestInProgress())
+                if (InterfaceManager.GetPanel<Panel_Harvest>().HarvestInProgress())
                 {
                     flag = true;
                 }
-                if (InterfaceManager.m_Panel_IceFishing.IsFishing())
+                if (InterfaceManager.GetPanel<Panel_IceFishing>().IsFishing())
                 {
                     flag = true;
                 }
-                if (InterfaceManager.m_Panel_BodyHarvest.IsHarvestingOrQuartering())
+                if (InterfaceManager.GetPanel<Panel_BodyHarvest>().IsHarvestingOrQuartering())
                 {
                     flag = true;
                 }
-                if (InterfaceManager.m_Panel_Inventory_Examine.IsReading() || InterfaceManager.m_Panel_Inventory_Examine.IsRepairing() || InterfaceManager.m_Panel_Inventory_Examine.IsHarvesting())
+                if (InterfaceManager.GetPanel<Panel_Inventory_Examine>().IsReading() || InterfaceManager.GetPanel<Panel_Inventory_Examine>().IsRepairing() || InterfaceManager.GetPanel<Panel_Inventory_Examine>().IsHarvesting())
                 {
                     flag = true;
                 }
@@ -275,13 +291,17 @@ namespace ImprovedSoundtrack
                 if (flag)
                 {
 
+                    MelonLoader.MelonLogger.Msg("Trepidation condition met");
+
                     try
                     {
                         float hoursPlayedNotPaused = GameManager.GetTimeOfDayComponent().GetHoursPlayedNotPaused();
                         if (!(hoursPlayedNotPaused - __instance.m_HappySuccessLastPlayTime < m_trepidationMinHoursInBetween))
                         {
+                            MelonLoader.MelonLogger.Msg("Trepidation playing");
+                            m_TrepidationSource.AssignClip(Implementation.ShotMusicManager.GetClip("shelter"));
+                            m_TrepidationSource.Play();
 
-                            GameAudioManager.PlayMusic(__instance.m_HappySuccessMusic, ((Component)__instance).gameObject);
                             __instance.m_HappySuccessLastPlayTime = hoursPlayedNotPaused;
                         }
                     }
@@ -297,7 +317,7 @@ namespace ImprovedSoundtrack
         }
 
         //Add Clearing to the dawn music by chance
-        [HarmonyPatch(typeof(TimeOfDay), "MaybePlayTimeOfDayStingers")]
+       /* [HarmonyPatch(typeof(TimeOfDay), "MaybePlayTimeOfDayStingers")]
         internal class TimeOfDay_PlayStingers
         {
 
@@ -317,7 +337,7 @@ namespace ImprovedSoundtrack
 
             }
 
-        }
+        } */
 
         //Adds new location discovered stingers
         [HarmonyPatch(typeof(MusicEventManager), "PlayLocationSound")]
@@ -332,7 +352,7 @@ namespace ImprovedSoundtrack
                     return;
                 }
 
-                if (!Settings.settings.locationStingers || Settings.settings.active == Active.Disabled || ExploreMusicManager.m_ExploreMusicSource.isPlaying)
+                if (!Settings.settings.locationStingers || Settings.settings.active == Active.Disabled)
                 {
                     return;
                 }
@@ -349,15 +369,15 @@ namespace ImprovedSoundtrack
                     chosenStinger = Random.Range(0, 3);
                 }
 
-                string[] stingers = { "Finder", "Shelter", "Shelter2" };
+                string[] stingers = { "finder", "shelter", "shelter2" };
 
-                AudioClip stinger = Implementation.TracksBundle.LoadAsset<AudioClip>(stingers[chosenStinger]);
 
-                m_OutdoorStingerSource.volume = InterfaceManager.m_Panel_OptionsMenu.m_State.m_MusicVolume;
+                //replace with ClipManager
+                //AudioClip stinger = Implementation.TracksBundle.LoadAsset<AudioClip>(stingers[chosenStinger]);
 
                 if (!hasPlayedBefore)
                 {
-                    m_OutdoorStingerSource.clip = stinger;
+                    m_OutdoorStingerSource.AssignClip(Implementation.ShotMusicManager.GetClip(stingers[chosenStinger]));
                     m_OutdoorStingerSource.Play();
                 }
 
